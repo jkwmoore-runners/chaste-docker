@@ -1,6 +1,6 @@
-# docker build -t chaste .
+# docker build -t chaste .
 # docker build --target base -t chaste/base .  # Alternative: build base image
-# docker run -it --rm -v chaste_data:/home/chaste chaste
+# docker run -it --rm -v chaste_data:/opt/chaste chaste
 
 ARG BASE=focal
 FROM ubuntu:${BASE} AS base
@@ -100,10 +100,11 @@ ENV TEXTTEST_HOME /usr/local/bin/texttest
 
 # Create user and working directory for Chaste files
 ENV USER "chaste"
-RUN useradd -ms /bin/bash chaste && echo "chaste:chaste" | chpasswd && adduser chaste sudo
+RUN useradd -d /opt/chaste -ms /bin/bash chaste && echo "chaste:chaste" | chpasswd && adduser chaste sudo
+
 
 # Allow CHASTE_DIR to be set at build time if desired
-ARG CHASTE_DIR="/home/chaste"
+ARG CHASTE_DIR="/opt/chaste"
 ENV CHASTE_DIR=${CHASTE_DIR}
 WORKDIR ${CHASTE_DIR}
 
@@ -113,7 +114,7 @@ USER chaste
 ENV PATH "${CHASTE_DIR}/scripts:${PATH}"
 
 # Set environment variables
-# RUN source /home/chaste/scripts/set_env_vars.sh
+# RUN source /opt/chaste/scripts/set_env_vars.sh
 ENV CHASTE_SOURCE_DIR="${CHASTE_DIR}/src" \
     CHASTE_BUILD_DIR="${CHASTE_DIR}/lib" \
     CHASTE_PROJECTS_DIR="${CHASTE_DIR}/src/projects" \
@@ -129,7 +130,9 @@ ENV CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
 ENV PYTHONPATH="${CHASTE_BUILD_DIR}/python:$PYTHONPATH"
 
 # Create Chaste build, projects and output folders
+RUN whoami
 RUN mkdir -p "${CHASTE_SOURCE_DIR}" "${CHASTE_BUILD_DIR}" "${CHASTE_TEST_OUTPUT}"
+RUN chown -R $USER "${CHASTE_SOURCE_DIR}" "${CHASTE_BUILD_DIR}" "${CHASTE_TEST_OUTPUT}"
 RUN ln -s "${CHASTE_PROJECTS_DIR}" projects
 
 CMD ["bash"]
