@@ -24,7 +24,5 @@ jobs:
       run: docker run jkwmoore/chaste:release bash -c 'cd $CHASTE_BUILD_DIR && ctest -j$(nproc) -L Continuous'
 
     - name: Run Singularity tests
-      run: singularity run docker://jkwmoore/chaste-docker:release bash -c 'cd $CHASTE_BUILD_DIR && ctest -j$(nproc) -L Continuous'
-
-
+      run: singularity exec docker://ubuntu:18.04 bash -c 'mkdir -p overlay_tmp/upper overlay_tmp/work && dd if=/dev/zero of=my_overlay count=1000 bs=1M && mkfs.ext3 -d overlay_tmp my_overlay && rm -rf overlay_tmp' && singularity run --overlay my_overlay docker://jkwmoore/chaste-docker:release bash -c  'cd $CHASTE_BUILD_DIR && ctest -j$(nproc) -L Continuous' ; rm my_overlay
 
