@@ -20,5 +20,11 @@ jobs:
     - name: Build the Docker image
       run: docker build --build-arg TAG=release -t jkwmoore/chaste-docker:release .
       
-    - name: Run tests
+    - name: Run Docker tests
       run: docker run jkwmoore/chaste:release bash -c 'cd $CHASTE_BUILD_DIR && ctest -j$(nproc) -L Continuous'
+
+    - name: Run Singularity tests
+      run: singularity run docker://jkwmoore/chaste-docker:release bash -c 'cd $CHASTE_BUILD_DIR && ctest -j$(nproc) -L Continuous'
+
+
+
